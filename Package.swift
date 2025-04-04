@@ -19,6 +19,7 @@ let package = Package(
     ],
     targets: [
         .systemLibrary(name: "Ccapstone",
+                       pkgConfig: "capstone",
                        providers: [
                         .brew(["capstone"])
         ]),
