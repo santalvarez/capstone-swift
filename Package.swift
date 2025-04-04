@@ -9,6 +9,7 @@ let package = Package(
         // Products define the executables and libraries a package produces, and make them visible to other packages.
         .library(
             name: "Capstone",
+            type: .static,
             targets: ["Capstone"]
         )
     ],
@@ -18,7 +19,6 @@ let package = Package(
     ],
     targets: [
         .systemLibrary(name: "Ccapstone",
-                       pkgConfig: "capstone",
                        providers: [
                         .brew(["capstone"])
         ]),
