@@ -1984,7 +1984,45 @@ public enum PpcIns: UInt32 {
     case xxspltib = 1686
     case xxspltw = 1687
     case xxswapd = 1688
-    case ending = 1689
+    case dcbzL = 1689
+    case psqL = 1690
+    case psqLu = 1691
+    case psqLux = 1692
+    case psqLx = 1693
+    case psqSt = 1694
+    case psqStu = 1695
+    case psqStux = 1696
+    case psqStx = 1697
+    case psAbs = 1698
+    case psAdd = 1699
+    case psCmpo0 = 1700
+    case psCmpo1 = 1701
+    case psCmpu0 = 1702
+    case psCmpu1 = 1703
+    case psDiv = 1704
+    case psMadd = 1705
+    case psMadds0 = 1706
+    case psMadds1 = 1707
+    case psMerge00 = 1708
+    case psMerge01 = 1709
+    case psMerge10 = 1710
+    case psMerge11 = 1711
+    case psMr = 1712
+    case psMsub = 1713
+    case psMul = 1714
+    case psMuls0 = 1715
+    case psMuls1 = 1716
+    case psNabs = 1717
+    case psNeg = 1718
+    case psNmadd = 1719
+    case psNmsub = 1720
+    case psRes = 1721
+    case psRsqrte = 1722
+    case psSel = 1723
+    case psSub = 1724
+    case psSum0 = 1725
+    case psSum1 = 1726
+    case ending = 1727
 
 }
 
@@ -2008,6 +2046,7 @@ public enum PpcGrp: UInt8 {
     case p8altivec = 139
     case p8vector = 140
     case qpx = 141
-    case ending = 142
+    case ps = 142
+    case ending = 143
 }
 

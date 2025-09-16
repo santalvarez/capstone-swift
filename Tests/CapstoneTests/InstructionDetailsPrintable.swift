@@ -240,6 +240,18 @@ extension Arm64Instruction: InstructionDetailsPrintable {
                 print("\t\toperands[\(i)].type: PREFETCH = 0x\(hex(op.prefetch!.rawValue))")
             case .barrier:
                 print("\t\toperands[\(i)].type: BARRIER = 0x\(hex(op.barrier!.rawValue))")
+            case .svcr:
+                print("\t\toperands[\(i)].type: SVCR = 0x\(hex(op.svcr!.rawValue))")
+            case .smeIndex:
+                print("\t\toperands[\(i)].type: SME_INDEX")
+                let smeIndex = op.smeIndex!
+                print("\t\t\toperands[\(i)].sme_index.reg: REG = \(smeIndex.reg)")
+                if let base = smeIndex.base {
+                    print("\t\t\toperands[\(i)].sme_index.base: REG = \(base)")
+                }
+                if smeIndex.displacement != 0 {
+                    print("\t\t\toperands[\(i)].sme_index.disp: 0x\(hex(smeIndex.displacement))")
+                }
             }
 
             printOperandAccess(index: i, access: op.access)
