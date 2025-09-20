@@ -68,6 +68,10 @@ public struct Mode: OptionSet {
     public enum ppc {
         /// Quad Processing eXtensions mode
         public static let qpx = Mode(CS_MODE_QPX)
+        /// Signal Processing Engine mode
+        public static let spe = Mode(CS_MODE_SPE)
+        /// Book-E mode
+        public static let bookE = Mode(CS_MODE_BOOKE)
     }
 
     /// M68K modes
@@ -108,5 +112,41 @@ public struct Mode: OptionSet {
         public static let cpu12 = Mode(CS_MODE_M680X_CPU12)
         /// M680X Freescale/NXP HCS08 mode
         public static let hcs08 = Mode(CS_MODE_M680X_HCS08)
+    }
+
+    // MOS65xx modes
+    public struct mos65xx {
+        /// MOS65XXX MOS 6502
+        public static let mos6502 = Mode(CS_MODE_MOS65XX_6502)
+        /// MOS65XXX WDC 65c02
+        public static let wdc65C02 = Mode(CS_MODE_MOS65XX_65C02)
+        /// MOS65XXX WDC W65c02
+        public static let wdcW65C02 = Mode(CS_MODE_MOS65XX_W65C02)
+        /// MOS65XXX WDC 65816, 8-bit m/x
+        public static let wdc65816 = Mode(CS_MODE_MOS65XX_65816)
+        /// MOS65XXX WDC 65816, 16-bit m, 8-bit x
+        public static let wdc65816longM = Mode(CS_MODE_MOS65XX_65816_LONG_M)
+        /// MOS65XXX WDC 65816, 8-bit m, 16-bit x
+        public static let wdc65816longX = Mode(CS_MODE_MOS65XX_65816_LONG_X)
+        /// MOS65XXX WDC 65816, 16-bit m, 16-bit x
+        public static let wdc65816longMX = Mode(CS_MODE_MOS65XX_65816_LONG_MX)
+    }
+
+    // BPF modes
+    public struct bpf {
+        /// Classic BPF mode (default)
+        public static let classic = Mode(CS_MODE_BPF_CLASSIC)
+        /// Extended BPF mode
+        public static let extended = Mode(CS_MODE_BPF_EXTENDED)
+    }
+
+    /// RISCV modes
+    public struct riscv {
+        /// RISCV RV32G
+        public static let riscv32 = Mode(CS_MODE_RISCV32)
+        /// RISCV RV64G
+        public static let riscv64 = Mode(CS_MODE_RISCV64)
+        /// RISCV Compressed Instruction Mode
+        public static let compressed = Mode(CS_MODE_RISCVC)
     }
 }

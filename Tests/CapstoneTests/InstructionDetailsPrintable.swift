@@ -26,7 +26,9 @@ extension Access {
 
 extension Instruction {
     func printOperandAccess(index i: Int, access: Access) {
-        print("\t\toperands[\(i)].access: \(access.testDescription)")
+        if !access.isEmpty {
+            print("\t\toperands[\(i)].access: \(access.testDescription)")
+        }
     }
 
     func printRegisters(_ regs: (read: [String], written: [String])) {
@@ -184,6 +186,7 @@ extension Arm64Ic: Arm64OperandSysValue {}
 extension Arm64Dc: Arm64OperandSysValue {}
 extension Arm64At: Arm64OperandSysValue {}
 extension Arm64Tlbi: Arm64OperandSysValue {}
+extension Arm64Sysreg: Arm64OperandSysValue {}
 
 extension Arm64Instruction: InstructionDetailsPrintable {
     func printInstructionDetails(cs: Capstone) {
@@ -237,6 +240,18 @@ extension Arm64Instruction: InstructionDetailsPrintable {
                 print("\t\toperands[\(i)].type: PREFETCH = 0x\(hex(op.prefetch!.rawValue))")
             case .barrier:
                 print("\t\toperands[\(i)].type: BARRIER = 0x\(hex(op.barrier!.rawValue))")
+            case .svcr:
+                print("\t\toperands[\(i)].type: SVCR = 0x\(hex(op.svcr!.rawValue))")
+            case .smeIndex:
+                print("\t\toperands[\(i)].type: SME_INDEX")
+                let smeIndex = op.smeIndex!
+                print("\t\t\toperands[\(i)].sme_index.reg: REG = \(smeIndex.reg)")
+                if let base = smeIndex.base {
+                    print("\t\t\toperands[\(i)].sme_index.base: REG = \(base)")
+                }
+                if smeIndex.displacement != 0 {
+                    print("\t\t\toperands[\(i)].sme_index.disp: 0x\(hex(smeIndex.displacement))")
+                }
             }
 
             printOperandAccess(index: i, access: op.access)
@@ -251,10 +266,6 @@ extension Arm64Instruction: InstructionDetailsPrintable {
 
             if let vas = op.vectorArrangementSpecifier {
                 print("\t\t\tVector Arrangement Specifier: 0x\(hex(vas.rawValue))")
-            }
-
-            if let vess = op.vectorElementSizeSpecifier {
-                print("\t\t\tVector Element Size Specifier: \(vess.rawValue)")
             }
 
             if let vectorIndex = op.vectorIndex {
@@ -830,6 +841,156 @@ extension TMS320C64xInstruction: InstructionDetailsPrintable {
             print("\tCondition: [\(cc.zero ? "!" : " ")\(registerName(cc.register))]")
         }
         print("\tParallel: \(parallel ? "true" : "false")")
+
+        print()
+    }
+}
+
+extension Mos65xxInstruction: InstructionDetailsPrintable {
+    func printInstructionDetails(cs: Capstone) {
+        printInstructionBase()
+        guard hasDetail else {
+            return
+        }
+
+        let registerName = { (reg: Mos65xxReg) -> String in
+            cs.name(ofRegister: reg)!
+        }
+
+        print("\taddress mode: \(addressingMode!)")
+        print("\tmodifies flags: \(modifiesFlags!)")
+
+        if operands.count > 0 {
+            print("\top_count: \(operands.count)")
+        }
+
+        for (i, op) in operands.enumerated() {
+            switch op.type {
+            case .invalid:
+                fatalError("Invalid operand")
+            case .reg:
+                print("\t\toperands[\(i)].type: REG = \(registerName(op.register))")
+            case .imm:
+                print("\t\toperands[\(i)].type: IMM = 0x\(hex(op.immediateValue!))")
+            case .mem:
+                print("\t\toperands[\(i)].type: MEM = 0x\(hex(op.address!))")
+            }
+        }
+
+        print()
+    }
+}
+
+extension WasmInstruction: InstructionDetailsPrintable {
+    func printInstructionDetails(cs: Capstone) {
+        printInstructionBase()
+        guard hasDetail else {
+            return
+        }
+
+        if !groups.isEmpty {
+            print("\tGroups: \(groupNames.joined(separator: " ")) ")
+        }
+
+        if operands.count > 0 {
+            print("\tOperand count: \(operands.count)")
+        }
+
+        for (i, op) in operands.enumerated() {
+            print("\t\tOperand[\(i)] type: \(op.type)")
+            switch op.type {
+            case .int7:
+                print("\t\tOperand[\(i)] value: \(op.int7Value!)")
+            case .uint32, .varuint32:
+                print("\t\tOperand[\(i)] value: 0x\(hex(op.uint32Value!))")
+            case .uint64, .varuint64:
+                print("\t\tOperand[\(i)] value: 0x\(hex(op.uint64Value!))")
+            default:
+                break
+            }
+            print("\t\tOperand[\(i)] size: \(op.size)")
+        }
+    }
+}
+
+extension BpfInstruction: InstructionDetailsPrintable {
+    func printInstructionDetails(cs: Capstone) {
+        printInstructionBase()
+        guard hasDetail else {
+            return
+        }
+
+        if !groups.isEmpty {
+            print("\tGroups: \(groupNames.joined(separator: " "))")
+        }
+
+        print("\tOperand count: \(operands.count)")
+
+        let registerName = { (reg: BpfReg) -> String in
+            cs.name(ofRegister: reg)!
+        }
+
+        for (i, op) in operands.enumerated() {
+            switch op.type {
+            case .reg:
+                print("\t\toperands[\(i)].type: REG = \(registerName(op.register))")
+            case .imm:
+                print("\t\toperands[\(i)].type: IMM = 0x\(hex(op.immediateValue))")
+            case .off:
+                print("\t\toperands[\(i)].type: OFF = +0x\(hex(op.offsetValue))")
+            case .mem:
+                print("\t\toperands[\(i)].type: MEM")
+                if let base = op.memory.base {
+                    print("\t\t\toperands[\(i)].mem.base: REG = \(registerName(base))")
+                }
+                print("\t\t\toperands[\(i)].mem.disp: 0x\(hex(op.memory.displacement))")
+            case .mmem:
+                print("\t\toperands[\(i)].type: MMEM = M[0x\(hex(op.scratchIndex))]")
+            case .msh:
+                print("\t\toperands[\(i)].type: MSH = 4*([0x\(hex(op.msh))]&0xf)")
+            case .ext:
+                let ext = op.extension!
+                print("\t\toperands[\(i)].type: EXT = #\(ext)")
+            default:
+                break
+            }
+        }
+
+        printRegisters(registerNamesAccessed)
+    }
+}
+
+extension RiscvInstruction: InstructionDetailsPrintable {
+    func printInstructionDetails(cs: Capstone) {
+        printInstructionBase()
+        guard hasDetail else {
+            return
+        }
+
+        print("\top_count: \(operands.count)")
+
+        let registerName = { (reg: RiscvReg) -> String in
+            cs.name(ofRegister: reg)!
+        }
+
+        for (i, op) in operands.enumerated() {
+            switch op.type {
+            case .reg:
+                print("\t\toperands[\(i)].type: REG = \(registerName(op.register))")
+            case .imm:
+                print("\t\toperands[\(i)].type: IMM = 0x\(hex(op.immediateValue))")
+            case .mem:
+                print("\t\toperands[\(i)].type: MEM")
+                print("\t\t\toperands[\(i)].mem.base: REG = \(registerName(op.memory.base))")
+                print("\t\t\toperands[\(i)].mem.disp: 0x\(hex(op.memory.displacement))")
+            default:
+                break
+            }
+        }
+
+        if !groups.isEmpty {
+            print("\tThis instruction belongs to groups: \(groupNames.joined(separator: " ")) ")
+        }
 
         print()
     }

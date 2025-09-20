@@ -78,7 +78,18 @@ struct ArchMode {
         "hd6301": ArchMode(.m680x, [Mode.m680x.m6301], "HD6301/3"),
         "hd6309": ArchMode(.m680x, [Mode.m680x.m6309], "HD6309"),
         "hcs08": ArchMode(.m680x, [Mode.m680x.hcs08], "HCS08"),
-        "evm": ArchMode(.evm, [], "Ethereum Virtual Machine")
+        "evm": ArchMode(.evm, [], "Ethereum Virtual Machine"),
+        "wasm": ArchMode(.wasm, [], "WebAssembly"),
+        "bpf": ArchMode(.bpf, [Mode.endian.little, Mode.bpf.classic], "Classic BPF"),
+        "bpfbe": ArchMode(.bpf, [Mode.endian.big, Mode.bpf.classic], "Classic BPF + big endian"),
+        "ebpf": ArchMode(.bpf, [Mode.endian.little, Mode.bpf.extended], "Extended BPF"),
+        "ebpfbe": ArchMode(.bpf, [Mode.endian.big, Mode.bpf.extended], "Extended BPF + big endian"),
+        "riscv32": ArchMode(.riscv, [Mode.riscv.riscv32], "RISCV 32-bit"),
+        "riscv64": ArchMode(.riscv, [Mode.riscv.riscv64], "RISCV 64-bit"),
+        "6502": ArchMode(.mos65xx, [Mode.mos65xx.mos6502], "MOS 6502"),
+        "65c02": ArchMode(.mos65xx, [Mode.mos65xx.wdc65C02], "WDC 65c02"),
+        "w65c02": ArchMode(.mos65xx, [Mode.mos65xx.wdcW65C02], "WDC w65c02"),
+        "65816": ArchMode(.mos65xx, [Mode.mos65xx.wdc65816longMX], "WDC 65816 (long m/x)")
     ]
 
     static var helpString: String {

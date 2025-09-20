@@ -65,11 +65,6 @@ extension Arm64Instruction: OperandContainer {
             optionalEnumCast(op.vas, ignoring: ARM64_VAS_INVALID)
         }
 
-        /// Vector Element Size Specifier
-        public var vectorElementSizeSpecifier: Arm64Vess! {
-            optionalEnumCast(op.vess, ignoring: ARM64_VESS_INVALID)
-        }
-
         /// Shift for this operand.
         ///
         /// `nil` if not applicable.
@@ -112,13 +107,20 @@ extension Arm64Instruction: OperandContainer {
                     return at
                 case .tlbi:
                     return tlbi
+                case .mrs, .msr:
+                    return systemRegister
                 default:
-                    fatalError("Invalid arm64 instruction for type sys: \(ins.rawValue)")
+                    fatalError("Invalid arm64 instruction for type sys: \(ins)(\(ins.rawValue))")
                 }
             case .prefetch:
                 return prefetch
             case .barrier:
                 return barrier
+            case .svcr:
+                return svcr
+            case .smeIndex:
+                return smeIndex
+                
             default:
                 // this shouldn't happen
                 fatalError("Invalid arm64 operand type \(type.rawValue)")
@@ -139,10 +141,12 @@ extension Arm64Instruction: OperandContainer {
         ///
         /// `nil` when not an appropriate operand.
         public var systemRegister: Arm64Sysreg! {
-            guard type == .regMrs || type == .regMsr else {
-                return nil
+            if type == .regMrs || type == .regMsr {
+                return enumCast(op.reg)
+            } else if type == .sys {
+                return enumCast(op.sys)
             }
-            return enumCast(op.reg)
+            return nil
         }
 
         /// Immediate register value for `imm` or `cimm` operands.
@@ -208,7 +212,31 @@ extension Arm64Instruction: OperandContainer {
             }
             return enumCast(op.barrier)
         }
+        
+        /// SVCR operand (`svcr` operand).
+        ///
+        /// `nil` when not an appropriate operand.
+        public var svcr: Arm64Svcr! {
+            guard type == .svcr else {
+                return nil
+            }
+            return enumCast(op.svcr)
+        }
 
+        /// SME index operand (`smeIndex` operand).
+        ///
+        /// `nil` when not an appropriate operand.
+        public var smeIndex: SmeIndex! {
+            guard type == .smeIndex else {
+                return nil
+            }
+            return SmeIndex(
+                reg: enumCast(op.sme_index.reg),
+                base: optionalEnumCast(op.sme_index.base, ignoring: ARM64_REG_INVALID),
+                displacement: op.sme_index.disp
+            )
+        }
+        
         /// Operand for IC operation.
         ///
         /// `nil` when not an appropriate operand.
@@ -258,6 +286,15 @@ extension Arm64Instruction: OperandContainer {
             /// Displacement/offset value.
             public let displacement: Int32
         }
+
+        public struct SmeIndex {
+            /// Index register.
+            public let reg: Arm64Reg
+            /// Index register, if any.
+            public let base: Arm64Reg?
+            /// Displacement/offset value.
+            public let displacement: Int32
+        }
     }
 }
 
@@ -267,6 +304,7 @@ extension Arm64Sysreg: Arm64OperandValue {}
 extension Int64: Arm64OperandValue {}
 extension Double: Arm64OperandValue {}
 extension Arm64Instruction.Operand.Memory: Arm64OperandValue {}
+extension Arm64Instruction.Operand.SmeIndex: Arm64OperandValue {}
 extension Arm64Pstate: Arm64OperandValue {}
 extension Arm64Barrier: Arm64OperandValue {}
 extension Arm64Ic: Arm64OperandValue {}
@@ -274,5 +312,6 @@ extension Arm64Dc: Arm64OperandValue {}
 extension Arm64At: Arm64OperandValue {}
 extension Arm64Tlbi: Arm64OperandValue {}
 extension Arm64Prfm: Arm64OperandValue {}
+extension Arm64Svcr: Arm64OperandValue {}
 
 extension Arm64Ins: InstructionType {}

@@ -29,6 +29,12 @@ public enum Architecture: UInt32 {
     case evm
     /// MOS65XX architecture (including MOS6502)
     case mos65xx
+    /// WebAssembly architecture
+    case wasm
+    /// Berkeley Packet Filter architecture (including eBPF)
+    case bpf
+    /// RISCV architecture
+    case riscv
 }
 
 /// ARM Instruction
@@ -70,6 +76,15 @@ public class EthereumInstruction: PlatformInstructionBase<EvmIns, EvmGrp> {}
 /// MOS65xx Instruction
 public class Mos65xxInstruction: PlatformInstruction<Mos65xxIns, Mos65xxGrp, Mos65xxReg> {}
 
+/// WebAssembly Instruction
+public class WasmInstruction: PlatformInstructionBase<WasmIns, WasmGrp> {}
+
+/// Berkeley Packet Filter Instruction
+public class BpfInstruction: PlatformInstruction<BpfIns, BpfGrp, BpfReg> {}
+
+/// RISCV Instruction
+public class RiscvInstruction: PlatformInstruction<RiscvIns, RiscvGrp, RiscvReg> {}
+
 public extension Architecture {
     /// The class for disassembled instructions used for this architecture.
     ///
@@ -102,6 +117,12 @@ public extension Architecture {
             return EthereumInstruction.self
         case .mos65xx:
             return Mos65xxInstruction.self
+        case .wasm:
+            return WasmInstruction.self
+        case .bpf:
+            return BpfInstruction.self
+        case .riscv:
+            return RiscvInstruction.self
         }
     }
 
