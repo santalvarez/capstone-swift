@@ -133,6 +133,19 @@ final class CapstoneTests: XCTestCase {
         try Tests.riscvTests.run(address: 0x1000)
     }
 
+    func testDisassembleWithRawBufferPointer() throws {
+        let code: [UInt8] = [0x75, 0x01]  // jne instruction
+        let capstone = try Capstone(arch: .x86, mode: Mode.bits.b32)
+
+        let instructions: [Instruction] = try code.withUnsafeBytes { buffer in
+            try capstone.disassemble(code: buffer, address: 0x1000)
+        }
+
+        XCTAssertEqual(instructions.count, 1)
+        XCTAssertEqual(instructions.first?.mnemonic, "jne")
+        XCTAssertEqual(instructions.first?.address, 0x1000)
+    }
+
     static var allTests = [
         ("testBasic", testBasic),
         ("testDetail", testDetail),
@@ -153,7 +166,8 @@ final class CapstoneTests: XCTestCase {
         ("testMos65xx", testMos65xx),
         ("testWasm", testWasm),
         ("testBpf", testBpf),
-        ("testRiscv", testRiscv)
+        ("testRiscv", testRiscv),
+        ("testDisassembleWithRawBufferPointer", testDisassembleWithRawBufferPointer)
     ]
 }
 
