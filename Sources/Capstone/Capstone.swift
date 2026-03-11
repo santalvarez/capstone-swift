@@ -100,6 +100,41 @@ public class Capstone {
         // swiftlint:enable force_cast
     }
 
+    /// Disassembles binary code from a raw buffer pointer.
+    ///
+    /// This overload avoids the overhead of `Data` allocation, making it faster for scenarios
+    /// such as single-instruction decoding or when working directly with memory buffers.
+    ///
+    /// - parameter InsType: instruction class to return. Must be `Instruction`, or the specific class for the target architecture
+    /// - parameter code: raw buffer pointer to the code to disassemble
+    /// - parameter address: address of the first instruction in given `code`
+    /// - parameter count: number of instructions to disassemble; 0 or nil to get all of them
+    /// - returns: disassembled instructions in the instruction class of the target architecture
+    /// - throws:
+    ///   * `CapstoneError.unsupportedArchitecture` if the return array is not of `Instruction` or the target architecture's instruction class
+    ///   * `CapstoneError.outOfMemory` if capstone runs out of memory during disassembly
+    public func disassemble<InsType: Instruction>(code: UnsafeRawBufferPointer, address: UInt64, count: Int? = nil) throws -> [InsType] {
+        guard InsType.self == Instruction.self || InsType.self == instructionClass else {
+            throw CapstoneError.unsupportedArchitecture
+        }
+        var insnsPtr: UnsafeMutablePointer<cs_insn>?
+        let resultCount = cs_disasm(handle, code.bindMemory(to: UInt8.self).baseAddress!, code.count, address, count ?? 0, &insnsPtr)
+
+        let err = cs_errno(handle)
+        guard err == CS_ERR_OK else {
+            throw CapstoneError(err)
+        }
+
+        guard let insns = insnsPtr, resultCount > 0 else {
+            return []
+        }
+
+        let mgr = InstructionMemoryManager(insns, count: resultCount, cs: self)
+        // swiftlint:disable force_cast
+        return (0..<resultCount).map({ instructionClass.init(mgr, index: $0) as! InsType })
+        // swiftlint:enable force_cast
+    }
+
     func name(ofInstruction id: UInt32) -> String? {
         guard let namePtr = cs_insn_name(handle, id) else {
             return nil

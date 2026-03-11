@@ -81,7 +81,7 @@ extension Instruction {
             // skipped data or no details
             return []
         }
-        let maxSize = Mirror(reflecting: array).children.count
+        let maxSize = MemoryLayout<A>.size / MemoryLayout<E>.size
         let count = min(maxSize, Int(size))
         return withUnsafePointer(to: array, { $0.withMemoryRebound(to: E.self, capacity: count, { regs in
             (0..<count).map({ regs[$0] })
@@ -228,7 +228,7 @@ extension PlatformInstruction {
     }
 
     /// Registers implicitly accessed by this instruction.
-    /// 
+    ///
     /// This API is only valid when detail mode is on (it's off by default).
     /// When in 'diet' mode, this API is irrelevant because engine does not store registers.
     public var registersAccessedImplicitly: (read: [RegType], written: [RegType]) {
